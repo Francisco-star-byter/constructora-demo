@@ -27,7 +27,7 @@
 <link rel="preload" as="image" href="assets/img/hero.webp" media="(min-width: 761px)">
 <link rel="preload" as="image" href="assets/img/hero-mobile.webp" media="(max-width: 760px)">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,400..900&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=7">
 
 <script type="application/ld+json">
 {
@@ -104,7 +104,7 @@
       <a href="#contacto">Contacto</a>
     </nav>
 
-    <a class="btn btn--sm nav__cta" href="#contacto">Solicitar proyecto</a>
+    <a class="btn btn--sm nav__cta" href="#contacto" data-modal>Solicitar proyecto</a>
 
     <button class="nav__toggle" id="navToggle" type="button"
             aria-expanded="false" aria-controls="menu" aria-label="Abrir menú">
@@ -123,7 +123,7 @@
       <li><a href="#contacto"><i>05</i>Contacto</a></li>
     </ul>
     <div class="menu__foot">
-      <a class="btn btn--fill" href="#contacto">Solicitar proyecto</a>
+      <a class="btn btn--fill" href="#contacto" data-modal>Solicitar proyecto</a>
       <p><a href="mailto:hola@porticoconstructora.co">hola@porticoconstructora.co</a><br>
          <a href="tel:+573001234567">+57 300 123 4567</a></p>
     </div>
@@ -153,7 +153,7 @@
     <p class="hero__lead">Arquitectura, ingeniería y construcción para proyectos pensados para trascender.</p>
 
     <div class="hero__actions">
-      <a class="btn btn--fill" href="#contacto">Cuéntanos tu proyecto</a>
+      <a class="btn btn--fill" href="#contacto" data-modal>Cuéntanos tu proyecto</a>
       <a class="btn btn--ghost" href="#proyectos">Ver proyectos</a>
     </div>
   </div>
@@ -214,7 +214,7 @@
             <p class="pro__place">Santa Marta · Vivienda unifamiliar</p>
             <p class="pro__desc">Hormigón a la vista y ventanales de piso a techo sobre la ladera. Orientada para que
               la brisa cruce la casa de lado a lado y el sol de la tarde no entre nunca de frente.</p>
-            <a class="btn btn--ghost btn--sm" href="#contacto">Quiero algo así</a>
+            <a class="btn btn--ghost btn--sm" href="#contacto" data-modal>Quiero algo así</a>
           </div>
         </li>
 
@@ -229,7 +229,7 @@
             <p class="pro__place">Barranquilla · Vivienda y paisajismo</p>
             <p class="pro__desc">Terrazas y escalinatas de concreto que siguen la pendiente natural del lote. El jardín
               entra a la casa en vez de rodearla.</p>
-            <a class="btn btn--ghost btn--sm" href="#contacto">Quiero algo así</a>
+            <a class="btn btn--ghost btn--sm" href="#contacto" data-modal>Quiero algo así</a>
           </div>
         </li>
 
@@ -244,7 +244,7 @@
             <p class="pro__place">Cartagena · Edificio de vivienda</p>
             <p class="pro__desc">Voladizos de hormigón que dan sombra a la fachada sur. Estructura vista, sin
               recubrimientos que envejezcan mal frente al mar.</p>
-            <a class="btn btn--ghost btn--sm" href="#contacto">Quiero algo así</a>
+            <a class="btn btn--ghost btn--sm" href="#contacto" data-modal>Quiero algo así</a>
           </div>
         </li>
 
@@ -259,7 +259,7 @@
             <p class="pro__place">Medellín · Obra civil y estructura</p>
             <p class="pro__desc">Cimentación profunda y estructura sismo resistente sobre un lote en pendiente.
               Entregada con memoria de cálculo y bitácora de obra completa.</p>
-            <a class="btn btn--ghost btn--sm" href="#contacto">Quiero algo así</a>
+            <a class="btn btn--ghost btn--sm" href="#contacto" data-modal>Quiero algo así</a>
           </div>
         </li>
 
@@ -578,7 +578,138 @@
   </div>
 </section>
 
-<!-- ═══════════ 10 · CTA FINAL ═══════════ -->
+<!-- ═══════════ 10 · PREGUNTAS FRECUENTES ═══════════ -->
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="display head__title" data-animation="reveal"><span class="rv">Preguntas</span></h2>
+      <p class="head__note" data-animation="fade-up" data-delay="100">Lo que más nos preguntan antes de firmar.
+        Si le queda alguna por fuera, escríbanos: contestamos igual de claro.</p>
+    </div>
+
+    <!-- Acordeón independiente del de Servicios: aquí se pueden abrir varias
+         a la vez, porque una FAQ se lee y se compara. Al perder de vista la
+         sección vuelven todas a cerrarse. Ver initFaq() en script.js. -->
+    <ul class="faq__list" id="faq-list">
+      <li class="faq__item" data-animation="fade-up">
+        <h3>
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-1">
+            <span class="faq__txt">¿Cuánto cuesta construir por metro cuadrado?</span>
+            <span class="faq__ico" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-1">
+          <div class="faq__a-in">
+            <p>Depende del nivel de acabado y de la topografía del lote, así que cualquier cifra suelta engaña.
+              En vivienda unifamiliar en la costa solemos movernos entre un rango medio y uno alto que le
+              damos por escrito después de ver el lote. Lo que sí es fijo: el precio se cierra antes de
+              empezar y queda en el contrato con presupuesto abierto por capítulos.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="faq__item" data-animation="fade-up">
+        <h3>
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-2">
+            <span class="faq__txt">¿Cuánto se demora una casa de principio a fin?</span>
+            <span class="faq__ico" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-2">
+          <div class="faq__a-in">
+            <p>Entre diez y dieciséis meses de obra para una vivienda de dos plantas, más dos a cuatro meses
+              previos de diseño y licencia. El cronograma se firma con el contrato y se mide contra hitos, no
+              contra promesas: si una etapa se corre, usted se entera en el corte de ese mes, no al final.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="faq__item" data-animation="fade-up">
+        <h3>
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-3">
+            <span class="faq__txt">¿Trabajan fuera de Santa Marta?</span>
+            <span class="faq__ico" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-3">
+          <div class="faq__a-in">
+            <p>Sí. Toda la costa Caribe —Barranquilla, Cartagena, Riohacha y sus corregimientos— con residente
+              propio en obra. En el interior del país trabajamos por proyecto y evaluamos caso por caso, porque
+              montar la logística solo se justifica a partir de cierto tamaño.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="faq__item" data-animation="fade-up">
+        <h3>
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-4">
+            <span class="faq__txt">¿Qué pasa si el presupuesto se desborda?</span>
+            <span class="faq__ico" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-4">
+          <div class="faq__a-in">
+            <p>Trabajamos a precio cerrado: los sobrecostos por mala estimación nuestra los asumimos nosotros.
+              Lo único que mueve el valor son los cambios que usted pida sobre lo firmado o un imprevisto de
+              suelo documentado, y en ambos casos se cotiza y se aprueba por escrito antes de ejecutarlo.
+              Nunca va a recibir una factura por algo que no autorizó.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="faq__item" data-animation="fade-up">
+        <h3>
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-5">
+            <span class="faq__txt">¿Puedo contratar solo el diseño, o solo la construcción?</span>
+            <span class="faq__ico" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-5">
+          <div class="faq__a-in">
+            <p>Sí, entramos en cualquier punto del proyecto. Podemos entregarle los planos aprobados para que
+              construya con quien quiera, tomar unos planos ajenos y ejecutarlos, o acompañar todo el proceso
+              desde el lote vacío. Si ya tiene diseño, lo revisamos antes de cotizar y le decimos con
+              franqueza qué ajustaríamos.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="faq__item" data-animation="fade-up">
+        <h3>
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-6">
+            <span class="faq__txt">¿Cómo hago seguimiento si no vivo en la ciudad?</span>
+            <span class="faq__ico" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-6">
+          <div class="faq__a-in">
+            <p>Informe semanal con fotos fechadas, avance real contra cronograma y las decisiones pendientes de
+              su parte. Además la bitácora de obra queda abierta para usted y puede pedir videollamada desde
+              obra cuando quiera. Buena parte de nuestros clientes vive fuera de la ciudad donde construye.</p>
+          </div>
+        </div>
+      </li>
+
+      <li class="faq__item" data-animation="fade-up">
+        <h3>
+          <button class="faq__q" type="button" aria-expanded="false" aria-controls="faq-7">
+            <span class="faq__txt">¿Qué garantía tiene la obra entregada?</span>
+            <span class="faq__ico" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq__a" id="faq-7">
+          <div class="faq__a-in">
+            <p>Diez años sobre la estructura, como exige la ley colombiana, y un año sobre acabados y
+              enchapes. La entrega incluye planos récord, manual de mantenimiento y las pólizas
+              correspondientes. Volvemos a los tres meses a revisar la obra sin que usted tenga que pedirlo.</p>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════ 11 · CTA FINAL ═══════════ -->
 <section class="cta" id="contacto">
   <div class="cta__media" id="ctaMedia">
     <img src="assets/img/cta.webp" width="1600" height="664" loading="lazy" decoding="async"
@@ -709,7 +840,7 @@
 
 </main>
 
-<!-- ═══════════ 11 · FOOTER ═══════════ -->
+<!-- ═══════════ 12 · FOOTER ═══════════ -->
 <footer class="foot">
   <div class="wrap">
     <p class="display foot__claim">Arquitectura que permanece.</p>
@@ -728,18 +859,23 @@
           <li><a href="#servicios">Servicios</a></li>
           <li><a href="#proceso">Proceso</a></li>
           <li><a href="#nosotros">Nosotros</a></li>
+          <li><a href="#faq">Preguntas frecuentes</a></li>
           <li><a href="#contacto">Contacto</a></li>
         </ul>
       </nav>
 
       <div class="foot__col">
         <h2>Servicios</h2>
+        <!-- data-serv apunta al panel del acordeón (los id de .serv__panel).
+             El script abre ese servicio antes de que el navegador salte a
+             #servicios; sin JS el enlace sigue llevando a la sección. -->
         <ul>
-          <li><a href="#servicios">Arquitectura</a></li>
-          <li><a href="#servicios">Construcción</a></li>
-          <li><a href="#servicios">Remodelación</a></li>
-          <li><a href="#servicios">Obras civiles</a></li>
-          <li><a href="#servicios">Interventoría</a></li>
+          <li><a href="#servicios" data-serv="serv-1">Arquitectura</a></li>
+          <li><a href="#servicios" data-serv="serv-2">Construcción</a></li>
+          <li><a href="#servicios" data-serv="serv-3">Remodelación</a></li>
+          <li><a href="#servicios" data-serv="serv-4">Obras civiles</a></li>
+          <li><a href="#servicios" data-serv="serv-5">Proyectos comerciales</a></li>
+          <li><a href="#servicios" data-serv="serv-6">Interventoría</a></li>
         </ul>
       </div>
 
@@ -765,8 +901,21 @@
   </div>
 </footer>
 
+<!-- ═══════════ 13 · MODAL DE CONTACTO ═══════════ -->
+<!-- Va vacío a propósito: initModal() clona aquí dentro el formulario de la
+     sección de contacto y le renumera los id. Escribirlo dos veces en el HTML
+     obligaría a corregir siempre en dos sitios. -->
+<dialog class="modal" id="modalContacto" aria-label="Cuéntanos del proyecto">
+  <div class="modal__caja">
+    <button class="modal__x" type="button" id="modalCerrar" aria-label="Cerrar">
+      <span aria-hidden="true"></span><span aria-hidden="true"></span>
+    </button>
+    <div class="modal__cuerpo" id="modalCuerpo"></div>
+  </div>
+</dialog>
+
 <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor__dot"></span><span class="cursor__ring"></span></div>
 
-<script src="script.js?v=3" defer></script>
+<script src="script.js?v=8" defer></script>
 </body>
 </html>

@@ -765,10 +765,17 @@ address{font-style:normal}
   transform:translateY(-50%) rotate(45deg);
 }
 
-.serv__item.is-active .serv__row{padding-left:clamp(.75rem,1.6vw,1.5rem)}
-.serv__item.is-active .serv__name{color:var(--hueso)}
-.serv__item.is-active .serv__n{color:var(--minio)}
-.serv__item.is-active .serv__arrow{transform:scaleX(1);transform-origin:left}
+/* El abierto se marca igual que el que tiene el puntero encima: al llegar
+   desde un enlace del pie no hay hover que lo señale, y si no la fila del
+   panel desplegado se quedaba apagada. */
+.serv__item.is-active .serv__row,
+.serv__item.is-open .serv__row{padding-left:clamp(.75rem,1.6vw,1.5rem)}
+.serv__item.is-active .serv__name,
+.serv__item.is-open .serv__name{color:var(--hueso)}
+.serv__item.is-active .serv__n,
+.serv__item.is-open .serv__n{color:var(--minio)}
+.serv__item.is-active .serv__arrow,
+.serv__item.is-open .serv__arrow{transform:scaleX(1);transform-origin:left}
 
 .serv__panel{
   display:grid;
@@ -786,9 +793,24 @@ address{font-style:normal}
   opacity:0;
   transition:opacity .4s var(--e);
 }
+/* Las dos cajas de texto se ciñen a sus letras.
+
+   Importa para la foto flotante: el script decide si esconderla según qué
+   elemento haya bajo el puntero, y por defecto estas dos cajas son mucho
+   más anchas que su texto —el nombre es una celda de rejilla estirada que
+   llega hasta la descripción de la derecha, y el párrafo es un bloque que
+   ocupa sus 52ch aunque el renglón termine antes—. Sin ceñirlas, todo ese
+   hueco negro contaría como texto. Ninguna de las dos lleva fondo ni
+   borde, así que ceñirlas no cambia nada de lo que se ve. */
+.serv__name{justify-self:start}
 .serv__panel p{
+  width:fit-content;
   max-width:52ch;
-  padding-bottom:1.25rem;
+  /* Margen y no padding: da el mismo aire, pero el padding sí es zona
+     sensible al puntero y dejaba una franja muerta bajo el texto. No se
+     colapsa hacia fuera porque el overflow de .serv__panel-in ya crea un
+     contexto de formato, así que sigue contando para el alto del panel. */
+  margin-bottom:1.25rem;
   color:var(--cemento);
   font-size:var(--t-base);
 }
@@ -1000,7 +1022,7 @@ address{font-style:normal}
 }
 .dif__list p{color:var(--cemento);max-width:44ch;font-size:var(--t-sm);line-height:1.65}
 
-/* ═══ 10 · TESTIMONIOS, CTA Y FOOTER ════════════════════ */
+/* ═══ 10 · TESTIMONIOS, FAQ, CTA Y FOOTER ═══════════════ */
 .testi{
   background:var(--hueso);
   color:var(--carbon);
@@ -1093,6 +1115,109 @@ address{font-style:normal}
 }
 .testi__dots button[aria-current="true"]{background:var(--minio)}
 .testi__btns{display:flex;gap:.6rem}
+
+/* ── Preguntas frecuentes ──────────────────────────────────
+   Mismo mecanismo de despliegue que Servicios (grid-template-rows
+   de 0fr a 1fr: anima sin max-height inventado y sin medir en JS),
+   pero en claro y con otra jerarquía. Las preguntas van en caja
+   baja y a tamaño de lectura, no en el display enorme y en
+   versalitas de .serv__name: ahí son dos palabras de catálogo,
+   aquí son frases completas que hay que poder leer de corrido.
+
+   Comparte fondo con Testimonios, así que el corte lo hace el
+   espacio: --sec-lg arriba, igual que Proceso. */
+.faq{
+  background:var(--hueso);
+  color:var(--carbon);
+  padding-block:var(--sec-lg) var(--sec);
+}
+
+/* La lista ya abre con su propio filete, así que el del encabezado sobra:
+   dos hairlines separados por dos dedos se leen como un error de imprenta.
+   Es el mismo ajuste que hace .head--dark en Servicios, pero sin tocar el
+   color de la nota, que aquí va sobre fondo claro. */
+.faq .head{border-bottom:0;padding-bottom:0}
+
+.faq__item{border-top:1px solid var(--line-dark)}
+.faq__item:last-of-type{border-bottom:1px solid var(--line-dark)}
+
+/* El h3 solo aporta semántica de esquema: la fila la dibuja el botón. */
+.faq__item h3{font:inherit}
+
+.faq__q{
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1.25rem;
+  /* Centrado, no 'start': así el signo cae sobre el eje de la pregunta
+     tanto si ocupa una línea como si se parte en tres en móvil. */
+  align-items:center;
+  gap:clamp(1rem,3vw,2.5rem);
+  padding:clamp(1.05rem,1.9vw,1.6rem) 0;
+  text-align:left;
+  cursor:pointer;
+  color:inherit;
+  transition:padding-left .55s var(--e-out),color .35s var(--e);
+}
+.faq__txt{
+  font-family:var(--display);
+  font-weight:700;
+  font-stretch:88%;
+  font-variation-settings:"wdth" 88;
+  font-size:clamp(1.05rem,.98rem + .5vw,1.4rem);
+  line-height:1.3;
+  min-width:0;
+}
+.faq__q:hover,
+.faq__q[aria-expanded="true"]{padding-left:clamp(.5rem,1.2vw,1rem)}
+.faq__q:hover .faq__txt{color:var(--hormigon)}
+
+/* Signo + que se vuelve − al abrir. Dos trazos cruzados: el vertical
+   colapsa con scaleY, así que la transición es de compositor y el
+   trazo nunca pierde su grosor de 1px. */
+.faq__ico{
+  position:relative;
+  justify-self:end;
+  width:1.25rem;height:1.25rem;
+}
+.faq__ico::before,
+.faq__ico::after{
+  content:"";
+  position:absolute;
+  top:50%;left:0;
+  width:100%;height:1px;
+  margin-top:-.5px;
+  background:var(--minio);
+  transition:transform .45s var(--e-out);
+}
+.faq__ico::after{transform:rotate(90deg)}
+.faq__q[aria-expanded="true"] .faq__ico::after{transform:rotate(90deg) scaleX(0)}
+
+.faq__a{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows .5s var(--e-out);
+}
+.faq__a-in{
+  overflow:hidden;
+  min-height:0;
+  opacity:0;
+  transition:opacity .35s var(--e);
+}
+.faq__a p{
+  max-width:62ch;
+  padding:0 0 clamp(1.15rem,2vw,1.6rem);
+  color:var(--grafito);
+  font-size:var(--t-base);
+  line-height:1.75;
+}
+.faq__item.is-open .faq__a{grid-template-rows:1fr}
+.faq__item.is-open .faq__a-in{opacity:1}
+
+/* La respuesta se alinea con la pregunta y deja libre la columna del
+   signo, para que el ojo baje por un solo borde izquierdo. */
+@media (min-width:700px){
+  .faq__a p{padding-right:clamp(2rem,6vw,5rem)}
+}
 
 .cta{
   position:relative;
@@ -1278,6 +1403,113 @@ a.canal__v:hover{color:var(--hueso)}
 .form__st:empty{display:none}
 .form__st.is-bad{border-left-color:var(--alerta);color:var(--alerta)}
 
+/* ── Modal de contacto ─────────────────────────────────────
+   <dialog> nativo: showModal() ya trae el foco atrapado, el cierre
+   con Esc y el fondo inerte, que es justo la parte que peor sale
+   escrita a mano. Aquí solo hay que quitarle el aspecto de caja
+   blanca que le pone el navegador. */
+/* El diálogo ocupa la pantalla entera y centra la caja por su cuenta.
+
+   La alternativa era dejar que centrara la hoja de estilos del navegador,
+   que para un dialog modal usa inset:0 con margin:auto. Eso funciona solo
+   mientras el alto se resuelva por contenido: en cuanto la caja topa con
+   su máximo —un formulario largo en una pantalla baja, que es justo el
+   caso de un móvil— el reparto deja de ser simétrico y la ventana se va
+   hacia arriba. Con inset:0 y place-items:center el centrado no depende
+   de la altura del contenido ni del motor que lo pinte. */
+.modal{
+  position:fixed;
+  inset:0;
+  width:auto;height:auto;
+  max-width:none;max-height:none;
+  margin:0;
+  padding:clamp(.75rem,3vw,1.5rem);
+  border:0;
+  background:none;
+  color:var(--hueso);
+  overflow:hidden;
+}
+/* Flex y no grid: el porcentaje del max-height de la caja se resuelve
+   contra el alto del contenedor, que aquí es definido por inset:0. En
+   grid se resolvería contra el área de rejilla, cuyo tamaño depende a su
+   vez del contenido, y ese rodeo es el que suele terminar en desbordes. */
+.modal[open]{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.modal::backdrop{
+  background:rgba(0,0,0,.74);
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+
+/* La animación va en la caja, no en el diálogo: este ahora mide toda la
+   pantalla y desplazarlo movería también el área de clic del fondo. */
+.modal[open] .modal__caja{animation:modalEntra .45s var(--e-out) both}
+@keyframes modalEntra{
+  from{opacity:0;transform:translateY(1.25rem) scale(.985)}
+  to{opacity:1;transform:none}
+}
+
+.modal__caja{
+  position:relative;
+  display:grid;
+  /* minmax(0,1fr), no 1fr a secas: los ítems de grid arrancan con
+     min-height:auto y sin esto la fila crece con el formulario en vez
+     de dejar que corra por dentro. */
+  grid-template-rows:minmax(0,1fr);
+  width:min(46rem,100%);
+  /* 100% del diálogo ya descontado su padding, así que la caja nunca
+     desborda la pantalla y no hace falta adivinar con svh ni con vh. */
+  max-height:min(100%,54rem);
+  background:var(--carbon);
+  border:1px solid rgba(198,193,182,.16);
+}
+/* El que corre es el cuerpo, no el diálogo: así la X de cerrar queda
+   anclada a la caja y no se va con el scroll del formulario. */
+.modal__cuerpo{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+/* Dentro del modal el formulario ya no flota sobre una foto: sobran su
+   fondo translúcido, su desenfoque y su borde, que aquí solo dibujarían
+   un segundo marco por dentro del de la caja. */
+.modal .form{
+  background:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border:0;
+}
+/* Deja libre la esquina donde va la X */
+.modal .form__t{padding-right:2.75rem}
+
+.modal__x{
+  position:absolute;
+  z-index:2;
+  top:clamp(.75rem,1.8vw,1.15rem);
+  right:clamp(.75rem,1.8vw,1.15rem);
+  width:2.25rem;height:2.25rem;
+  cursor:pointer;
+  border:1px solid var(--line);
+  border-radius:50%;
+  transition:background .35s var(--e),border-color .35s var(--e);
+}
+.modal__x:hover{background:var(--minio);border-color:var(--minio)}
+/* Centrado por coordenadas y no por alineación del contenedor: los hijos
+   absolutos de un grid dependen del área de rejilla para su posición
+   estática, y eso varía entre motores. */
+.modal__x span{
+  position:absolute;
+  top:50%;left:50%;
+  width:.85rem;height:1px;
+  background:currentColor;
+}
+.modal__x span:first-child{transform:translate(-50%,-50%) rotate(45deg)}
+.modal__x span:last-child{transform:translate(-50%,-50%) rotate(-45deg)}
+
 .foot{
   background:var(--negro);
   padding-block:clamp(2.5rem,4.5vw,4rem) max(1.5rem,env(safe-area-inset-bottom,0px));
@@ -1366,6 +1598,15 @@ html.has-cursor .cursor{display:block}
 html.has-cursor,
 html.has-cursor a,
 html.has-cursor button{cursor:none}
+
+/* Con el modal abierto vuelve el puntero del sistema. Un <dialog> se pinta
+   en la top layer, por encima de cualquier z-index, así que la bolita queda
+   debajo y no se ve: entre esconder el cursor nativo y no poder dibujar el
+   propio, el visitante se quedaba sin puntero sobre el formulario. */
+html.modal-abierto.has-cursor,
+html.modal-abierto.has-cursor a,
+html.modal-abierto.has-cursor button{cursor:auto}
+html.modal-abierto .cursor{display:none}
 
 /* Guarda dura: en cualquier equipo sin ratón la bolita no existe, aunque
    el JS fallara o el navegador declarase mal el tipo de puntero. */

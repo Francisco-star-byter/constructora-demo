@@ -75,6 +75,35 @@
     return m;
   }
 
+  /* Llama a fn() en el momento en que el elemento acaba de salir entero de
+     la pantalla. Lo usan los dos acordeones —Servicios y Preguntas— para
+     volver solos a su estado cerrado.
+
+     Es importante que dispare por transición y no por estado: los enlaces
+     de servicios del pie abren un panel con la sección todavía fuera de
+     vista, y si esto reaccionara al estado, ese panel se cerraría antes de
+     que el scroll llegara a mostrarlo. Al mirar solo el cambio, la sección
+     ya estaba fuera antes y después del clic, así que no pasa nada y el
+     panel sobrevive el viaje. */
+  function alSalirDePantalla(el, fn) {
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (!e.isIntersecting) fn(); });
+      }, { threshold: 0 }).observe(el);
+      return;
+    }
+
+    // Respaldo sin IntersectionObserver: mismo disparo por transición.
+    var m = metrics(el);
+    var dentro = true;
+    addTicker(function (y) {
+      var top = m.top - y;                       // top relativo al viewport
+      var visible = !(top + m.height < 0 || top > vh);
+      if (dentro && !visible) fn();
+      dentro = visible;
+    });
+  }
+
   /* ─────────────────────────────────────────────────────
      1 · SISTEMA DE ANIMACIONES  [data-animation]
      ───────────────────────────────────────────────────── */
@@ -347,20 +376,45 @@
 
     var rows = $$('.serv__row', list);
 
+    // Solo puede haber uno abierto a la vez; se guarda aquí para no consultar el DOM.
+    var abierto = null;
+
+    function cerrar() {
+      if (!abierto) return;
+      abierto.classList.remove('is-open');
+      var b = $('.serv__row', abierto);
+      if (b) b.setAttribute('aria-expanded', 'false');
+      abierto = null;
+    }
+
+    function abrir(item) {
+      cerrar();
+      item.classList.add('is-open');
+      var b = $('.serv__row', item);
+      if (b) b.setAttribute('aria-expanded', 'true');
+      abierto = item;
+    }
+
+    // Al perder de vista la sección, el acordeón vuelve al estado normal.
+    alSalirDePantalla($('#servicios') || list, cerrar);
+
     // Acordeón (funciona en cualquier dispositivo)
     rows.forEach(function (row) {
       row.addEventListener('click', function () {
         var item = row.parentElement;
-        var isOpen = item.classList.contains('is-open');
-        $$('.serv__item', list).forEach(function (i) {
-          i.classList.remove('is-open');
-          var b = $('.serv__row', i);
-          if (b) b.setAttribute('aria-expanded', 'false');
-        });
-        if (!isOpen) {
-          item.classList.add('is-open');
-          row.setAttribute('aria-expanded', 'true');
-        }
+        if (item === abierto) cerrar();
+        else abrir(item);
+      });
+    });
+
+    /* Enlaces del pie: abren su servicio y dejan que el salto a #servicios
+       lo haga el navegador (scroll-behavior + scroll-padding-top del CSS). */
+    $$('a[data-serv]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        var row = list.querySelector('.serv__row[aria-controls="' + a.getAttribute('data-serv') + '"]');
+        if (!row) return;
+        abrir(row.parentElement);
+        try { row.focus({ preventScroll: true }); } catch (err) { /* navegador viejo */ }
       });
     });
 
@@ -407,8 +461,43 @@
       else raf = null;
     }
 
+    /* La foto se esconde sobre el texto de la izquierda —el nombre del
+       servicio y, si está desplegado, su párrafo— y se ve en todo lo demás:
+       el número, la descripción de la derecha, la flecha y el negro.
+
+       Quién está debajo del puntero lo resuelve el navegador, no una cuenta
+       de coordenadas nuestra. Es deliberado: esta zona se mueve sola. Al
+       entrar en una fila su padding-left se desplaza durante medio segundo,
+       y al abrir un servicio el panel crece durante otro medio segundo
+       arrastrando todo lo de abajo. Midiendo rectángulos a mano solo se
+       acierta mientras llegan eventos de movimiento; con el ratón quieto el
+       texto sigue deslizándose por debajo y el estado se queda viejo. El
+       hit-testing del navegador se reevalúa con cada cambio de maquetación
+       y avisa por mouseover aunque el puntero no se haya movido.
+
+       Las cajas se ciñen a su texto desde el CSS (ver .serv__name y
+       .serv__panel p); sin eso, esto acertaría el elemento pero el elemento
+       ocuparía de más. */
+    var TEXTO = '.serv__name, .serv__panel p';
+
+    function pinta(destino) {
+      var item = destino && destino.closest ? destino.closest('.serv__item') : null;
+      if (!item || destino.closest(TEXTO)) {
+        media.classList.remove('is-visible');
+        return;
+      }
+      var row = $('.serv__row', item);
+      var idx = row ? parseInt(row.getAttribute('data-img'), 10) || 0 : 0;
+      imgs.forEach(function (im, i) { im.classList.toggle('is-shown', i === idx); });
+      media.classList.add('is-visible');
+    }
+
     function move(e) {
       if (!floatOK()) return;
+
+      /* La posición se actualiza siempre, también mientras está escondida:
+         así al salir del texto reaparece bajo el cursor y no viajando desde
+         donde se apagó. */
       var r = wrap.getBoundingClientRect();
       var mw = media.offsetWidth;
       var mh = media.offsetHeight;
@@ -416,17 +505,15 @@
       ty = clamp(e.clientY - r.top - mh / 2, 0, Math.max(0, r.height - mh));
       if (!shown) { cx = tx; cy = ty; shown = true; }
       if (!raf) raf = requestAnimationFrame(loop);
+
+      pinta(e.target);
     }
 
     list.addEventListener('mousemove', move);
 
-    rows.forEach(function (row) {
-      row.addEventListener('mouseenter', function () {
-        if (!floatOK()) return;
-        var idx = parseInt(row.getAttribute('data-img'), 10) || 0;
-        imgs.forEach(function (im, i) { im.classList.toggle('is-shown', i === idx); });
-        media.classList.add('is-visible');
-      });
+    // Cubre el caso del ratón quieto: es el que dispara al moverse la página
+    list.addEventListener('mouseover', function (e) {
+      if (floatOK()) pinta(e.target);
     });
 
     list.addEventListener('mouseleave', function () {
@@ -607,7 +694,46 @@
   }
 
   /* ─────────────────────────────────────────────────────
-     9 · PARALLAX DEL CTA
+     9 · PREGUNTAS FRECUENTES
+
+     A diferencia de Servicios, aquí se pueden tener varias abiertas
+     a la vez: son respuestas que se leen y se comparan, no un índice
+     del que basta una entrada. Lo que sí comparten es el regreso al
+     estado cerrado cuando la sección se pierde de vista, y por eso
+     el cierre se apoya en alSalirDePantalla().
+
+     El despliegue lo hace el CSS con grid-template-rows (0fr→1fr):
+     el JS solo mueve la clase y el aria-expanded, no mide alturas.
+     ───────────────────────────────────────────────────── */
+  function initFaq() {
+    var list = $('#faq-list');
+    if (!list) return;
+
+    $$('.faq__q', list).forEach(function (q) {
+      var item = q.closest('.faq__item');
+      if (!item) return;
+      q.addEventListener('click', function () {
+        var abierta = q.getAttribute('aria-expanded') === 'true';
+        q.setAttribute('aria-expanded', abierta ? 'false' : 'true');
+        item.classList.toggle('is-open', !abierta);
+      });
+    });
+
+    /* Se consulta el DOM aquí y no se lleva un registro aparte porque esto
+       corre una sola vez por salida de pantalla, no en cada fotograma. */
+    function cerrarTodas() {
+      $$('.faq__item.is-open', list).forEach(function (item) {
+        item.classList.remove('is-open');
+        var q = $('.faq__q', item);
+        if (q) q.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    alSalirDePantalla($('#faq') || list, cerrarTodas);
+  }
+
+  /* ─────────────────────────────────────────────────────
+     10 · PARALLAX DEL CTA
      ───────────────────────────────────────────────────── */
   function initParallax() {
     if (!motionOK()) return;
@@ -626,7 +752,7 @@
   }
 
   /* ─────────────────────────────────────────────────────
-     10 · CURSOR PERSONALIZADO (solo escritorio con ratón)
+     11 · CURSOR PERSONALIZADO (solo escritorio con ratón)
      ───────────────────────────────────────────────────── */
   function initCursor() {
     var cur = $('#cursor');
@@ -697,7 +823,7 @@
   }
 
   /* ─────────────────────────────────────────────────────
-     11 · DETALLES
+     12 · DETALLES
      ───────────────────────────────────────────────────── */
   function initMisc() {
     var y = $('#year');
@@ -707,7 +833,7 @@
   }
 
   /* ─────────────────────────────────────────────────────
-     12 · FORMULARIO DE CONTACTO
+     13 · FORMULARIO DE CONTACTO
 
      El sitio es estático: no hay backend que reciba un POST.
      El formulario valida en cliente, arma el mensaje y lo abre
@@ -716,28 +842,33 @@
      PARA RECIBIRLO EN UN SERVIDOR: dale action y method al
      <form> en index.html y quita el e.preventDefault() de abajo.
      La validación y los mensajes siguen sirviendo igual.
+
+     Recibe el formulario por parámetro y busca sus campos por
+     name, nunca por id: en la página hay dos —el de la sección y
+     el clon del modal—, y sus id tienen que diferenciarse para no
+     romper los <label for>. El name sí es el mismo en ambos, que
+     además es el nombre con el que viajaría el dato al servidor.
      ───────────────────────────────────────────────────── */
-  function initForm() {
-    var form = $('#contactoForm');
+  function initForm(form) {
     if (!form) return;
 
-    var status = $('#formStatus');
-    var consent = $('#f-ok');
+    var status = $('.form__st', form);
+    var consent = form.querySelector('[name="consent"]');
     var WA = '573001234567';
     var MAIL = 'hola@porticoconstructora.co';
 
     // El orden es también el orden en que se arma el mensaje
     var campos = [
-      { id: 'f-nombre',  et: 'Nombre',           req: 'Escribe tu nombre.' },
-      { id: 'f-tel',     et: 'WhatsApp',         req: 'Escribe un número de contacto.', tipo: 'tel' },
-      { id: 'f-correo',  et: 'Correo',           req: 'Escribe tu correo.', tipo: 'correo' },
-      { id: 'f-tipo',    et: 'Tipo de proyecto', req: 'Elige el tipo de proyecto.' },
-      { id: 'f-ciudad',  et: 'Ciudad' },
-      { id: 'f-presu',   et: 'Presupuesto' },
-      { id: 'f-mensaje', et: 'Mensaje' }
+      { n: 'nombre',      et: 'Nombre',           req: 'Escribe tu nombre.' },
+      { n: 'telefono',    et: 'WhatsApp',         req: 'Escribe un número de contacto.', tipo: 'tel' },
+      { n: 'correo',      et: 'Correo',           req: 'Escribe tu correo.', tipo: 'correo' },
+      { n: 'tipo',        et: 'Tipo de proyecto', req: 'Elige el tipo de proyecto.' },
+      { n: 'ciudad',      et: 'Ciudad' },
+      { n: 'presupuesto', et: 'Presupuesto' },
+      { n: 'mensaje',     et: 'Mensaje' }
     ];
 
-    var campo = function (c) { return document.getElementById(c.id); };
+    var campo = function (c) { return form.querySelector('[name="' + c.n + '"]'); };
     var caja  = function (el) { return el.closest('.f'); };
 
     function marcar(el, msg) {
@@ -826,7 +957,8 @@
 
       var via = (e.submitter || ultimo || {}).value || 'whatsapp';
       var txt = mensaje();
-      var nombre = ($('#f-nombre').value || '').trim();
+      var elNombre = campo(campos[0]);
+      var nombre = elNombre ? (elNombre.value || '').trim() : '';
 
       if (via === 'correo') {
         decir('Abrimos tu correo con el mensaje listo. Si no se abrió, escríbenos a ' + MAIL + '.');
@@ -837,6 +969,82 @@
         decir('Abrimos WhatsApp con el mensaje listo para enviar. Si no se abrió, escríbenos al +57 300 123 4567.');
         window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(txt), '_blank', 'noopener');
       }
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────
+     14 · MODAL DE CONTACTO
+
+     Los CTA de acción —el del navbar, el del hero y los "Quiero
+     algo así" de la galería— abren el formulario encima de la
+     página en vez de mandar al visitante hasta el final. Los
+     enlaces de navegación que dicen "Contacto" siguen llevando a
+     la sección, igual que antes.
+
+     El formulario no se escribe dos veces: se clona el de la
+     sección y se le renumeran los id. Con dos copias en el HTML,
+     cualquier cambio futuro habría que hacerlo en las dos y
+     tarde o temprano se separan.
+
+     Todo esto es mejora progresiva: los CTA conservan su
+     href="#contacto" y aquí solo se intercepta el clic. Si falla
+     el JS o el navegador no trae <dialog>, siguen funcionando
+     como el ancla que siempre fueron.
+     ───────────────────────────────────────────────────── */
+  function initModal() {
+    var dlg = $('#modalContacto');
+    var cuerpo = $('#modalCuerpo');
+    var original = $('#contactoForm');
+    if (!dlg || !cuerpo || !original || !dlg.showModal) return;
+
+    /* Dos elementos con el mismo id romperían los <label for> y los
+       aria-describedby de AMBOS formularios: el navegador resuelve
+       siempre al primero que encuentra en el documento. */
+    var copia = original.cloneNode(true);
+    copia.id = original.id + '-modal';
+    $$('[id]', copia).forEach(function (el) {
+      var viejo = el.id;
+      el.id = viejo + '-modal';
+      $$('[for="' + viejo + '"]', copia).forEach(function (l) { l.setAttribute('for', el.id); });
+      $$('[aria-describedby="' + viejo + '"]', copia).forEach(function (d) {
+        d.setAttribute('aria-describedby', el.id);
+      });
+    });
+    cuerpo.appendChild(copia);
+    initForm(copia);
+
+    function abrir() {
+      if (dlg.open) return;            // showModal() sobre uno ya abierto lanza
+      dlg.showModal();
+      /* showModal() ya bloquea la interacción con el fondo, pero no el
+         scroll: sin esto la página sigue corriendo detrás del diálogo.
+         Es la misma clase que usa el menú móvil. */
+      document.body.classList.add('is-locked');
+      // Devuelve el puntero del sistema mientras dure el modal (ver style.css)
+      document.documentElement.classList.add('modal-abierto');
+    }
+
+    // Esc y el botón de cerrar terminan los dos aquí ('close' es nativo)
+    dlg.addEventListener('close', function () {
+      document.body.classList.remove('is-locked');
+      document.documentElement.classList.remove('modal-abierto');
+    });
+
+    var x = $('#modalCerrar');
+    if (x) x.addEventListener('click', function () { dlg.close(); });
+
+    /* Clic fuera de la caja. El <dialog> cubre toda la pantalla para poder
+       centrar (ver .modal en style.css), así que todo lo que quede alrededor
+       de .modal__caja llega con el propio diálogo como target. */
+    dlg.addEventListener('click', function (e) {
+      if (e.target === dlg) dlg.close();
+    });
+
+    $$('a[data-modal]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        abrir();
+      });
     });
   }
 
@@ -853,8 +1061,10 @@
     initProceso();
     initCounters();
     initTestimonios();
+    initFaq();
     initParallax();
-    initForm();
+    initForm($('#contactoForm'));
+    initModal();
     initCursor();
     request();
   }
