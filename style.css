@@ -1488,8 +1488,8 @@ html.has-cursor button{cursor:none}
      el ancho, así que todo el trabajo de separar lo hace el eje vertical.
      Los clamp de arriba tocan su mínimo aquí, y ese mínimo se queda corto. */
   :root{
-    --sec:6rem;
-    --sec-lg:8.5rem;
+    --sec:7.5rem;
+    --sec-lg:10.5rem;
   }
 
   /* En móvil no hay costado libre que llenar */
