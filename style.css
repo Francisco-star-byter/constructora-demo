@@ -556,7 +556,7 @@ address{font-style:normal}
      que los demás cortes entre secciones del mismo color. */
   padding-top:var(--sec-lg);
 }
-.proyectos > .wrap{padding-bottom:clamp(1.5rem,2.6vw,2.25rem)}
+.proyectos > .wrap{padding-bottom:clamp(2.5rem,4vw,3.5rem)}
 
 /* --- Galería fijada ---------------------------------------------------
    .pro aporta la altura de scroll: el JS la fija en
@@ -706,7 +706,9 @@ address{font-style:normal}
 /* ═══ 07 · SERVICIOS ════════════════════════════════════ */
 .servicios{
   background:var(--negro);
-  padding-block:var(--sec);
+  /* Arriba lleva el espaciado ampliado: viene justo después de la galería
+     y las dos son negras, así que no hay borde de color que las separe. */
+  padding-block:var(--sec-lg) var(--sec);
   position:relative;
 }
 .servicios .wrap{position:relative}
@@ -1486,8 +1488,8 @@ html.has-cursor button{cursor:none}
      el ancho, así que todo el trabajo de separar lo hace el eje vertical.
      Los clamp de arriba tocan su mínimo aquí, y ese mínimo se queda corto. */
   :root{
-    --sec:4.75rem;
-    --sec-lg:6.75rem;
+    --sec:6rem;
+    --sec-lg:8.5rem;
   }
 
   /* En móvil no hay costado libre que llenar */
