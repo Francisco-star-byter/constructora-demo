@@ -27,7 +27,7 @@
 <link rel="preload" as="image" href="assets/img/hero.webp" media="(min-width: 761px)">
 <link rel="preload" as="image" href="assets/img/hero-mobile.webp" media="(max-width: 760px)">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,400..900&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=14">
 
 <script type="application/ld+json">
 {
@@ -297,6 +297,13 @@
         o acompañarlo completo desde el lote vacío.</p>
     </div>
 
+    <!-- La flecha de cada fila ya insinúa que se abre, pero un icono siempre
+         se puede leer mal. Esto lo dice con todas las letras. -->
+    <p class="serv__pista" data-animation="fade-up" data-delay="160">
+      <span class="serv__pista-i" aria-hidden="true"></span>
+      Abre cada servicio para ver el detalle
+    </p>
+
     <ul class="serv" id="serv">
       <li class="serv__item">
         <button class="serv__row" type="button" aria-expanded="false" aria-controls="serv-1" data-img="0">
@@ -456,8 +463,9 @@
 <section class="nosotros" id="nosotros">
   <div class="wrap nosotros__grid">
     <div class="nosotros__media" data-animation="scale">
-      <img src="assets/img/nosotros.webp" width="470" height="587" loading="lazy" decoding="async"
-           alt="Muro de hormigón terminado con la luz de la tarde entrando por el vano.">
+      <img src="assets/img/nosotros-equipo.webp" width="1200" height="800" loading="lazy" decoding="async"
+           alt="Cinco integrantes del equipo de Pórtico, con casco blanco y chaleco reflectivo, frente a la
+                estructura en hormigón de una obra en curso.">
     </div>
 
     <div class="nosotros__body">
@@ -543,22 +551,64 @@
 
       <div class="testi__track" id="testiTrack">
 
-        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="1 de 3">
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="1 de 10">
           <p>Nos entregaron la casa dos semanas antes de lo pactado y con el presupuesto que firmamos. Después de
             una obra anterior que se nos fue al doble, eso vale más que cualquier acabado.</p>
           <footer><cite>Marcela Cadena</cite><span>Casa Horizonte · Santa Marta</span></footer>
         </blockquote>
 
-        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="2 de 3">
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="2 de 10">
           <p>Vivo en Bogotá y la obra estaba en Barranquilla. El informe de los viernes con fotos y avance real
             fue lo que me dejó dormir tranquilo durante catorce meses.</p>
           <footer><cite>Julián Restrepo</cite><span>Casa Nativa · Barranquilla</span></footer>
         </blockquote>
 
-        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="3 de 3">
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="3 de 10">
           <p>Los contratamos para interventoría y terminaron rediseñando la cimentación. Detectaron un problema de
             suelo que nadie había visto y nos ahorraron un pleito.</p>
           <footer><cite>Andrea Villalba</cite><span>Proyecto Altura · Cartagena</span></footer>
+        </blockquote>
+
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="4 de 10">
+          <p>Vivimos en la casa los siete meses que duró la reforma. Trabajaron por etapas, nos dejaron una cocina
+            provisional montada y nunca nos quedamos sin agua un día completo.</p>
+          <footer><cite>Diana Mosquera</cite><span>Reforma integral · El Rodadero, Santa Marta</span></footer>
+        </blockquote>
+
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="5 de 10">
+          <p>Teníamos fecha de apertura firmada con el arrendador y cero margen. Entregaron el local nueve días
+            antes y alcanzamos a montar la cocina con calma.</p>
+          <footer><cite>Óscar Peñaloza</cite><span>Restaurante · Bocagrande, Cartagena</span></footer>
+        </blockquote>
+
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="6 de 10">
+          <p>El lote tenía un problema de escorrentía que dos constructoras anteriores prefirieron no mencionar.
+            Ellos hicieron el estudio y nos pasaron por escrito lo que costaba antes de mover una máquina.</p>
+          <footer><cite>Camilo Arrieta</cite><span>Obra civil y urbanismo · Gaira, Magdalena</span></footer>
+        </blockquote>
+
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="7 de 10">
+          <p>Solo les compramos el diseño, porque íbamos a construir con un primo. Cuando el primo se echó para
+            atrás y volvimos, retomaron la obra sin cobrarnos el levantamiento otra vez.</p>
+          <footer><cite>Liliana Guerrero</cite><span>Arquitectura y obra · Minca, Magdalena</span></footer>
+        </blockquote>
+
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="8 de 10">
+          <p>Llegué con unos planos que ya había pagado, esperando que me los tumbaran para venderme los suyos.
+            Hicieron lo contrario: señalaron dos cosas de la estructura y construyeron sobre eso.</p>
+          <footer><cite>Fernando Salcedo</cite><span>Vivienda unifamiliar · Puerto Colombia, Atlántico</span></footer>
+        </blockquote>
+
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="9 de 10">
+          <p>Contratamos la interventoría porque el constructor era conocido de la familia y no queríamos que la
+            confianza nos costara plata. El informe mensual se pagó solo en el tercer corte.</p>
+          <footer><cite>Patricia Lozano</cite><span>Interventoría · Riohacha, La Guajira</span></footer>
+        </blockquote>
+
+        <blockquote class="quote" role="group" aria-roledescription="testimonio" aria-label="10 de 10">
+          <p>A los tres meses de entregada salieron dos fisuras de retracción en el piso de la terraza. Volvieron,
+            las trataron y no me pasaron factura. Ahí es donde uno ve si la garantía era de verdad.</p>
+          <footer><cite>Hernán Dávila</cite><span>Vivienda unifamiliar · El Prado, Barranquilla</span></footer>
         </blockquote>
 
       </div>
@@ -916,6 +966,6 @@
 
 <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor__dot"></span><span class="cursor__ring"></span></div>
 
-<script src="script.js?v=8" defer></script>
+<script src="script.js?v=13" defer></script>
 </body>
 </html>

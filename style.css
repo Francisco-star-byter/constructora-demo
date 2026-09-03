@@ -88,6 +88,15 @@ body{
   text-rendering:optimizeLegibility;
   overflow-x:hidden;
 }
+/* Bloqueo de scroll, en <html> y no solo en el <body>.
+
+   Es consecuencia directa del overflow-x de arriba: al dejar de ser visible
+   el overflow de <html>, el navegador propaga al viewport el suyo y ya no el
+   del <body>. Con la clase puesta solo en el body, este se volvía su propio
+   contenedor de scroll y la página seguía corriendo por debajo del menú
+   abierto, que es el fallo que se veía en móvil. Se pone en los dos porque
+   el body también tiene que dejar de desplazarse por su cuenta. */
+html.is-locked,
 body.is-locked{overflow:hidden}
 
 img{display:block;max-width:100%;height:auto}
@@ -713,6 +722,47 @@ address{font-style:normal}
 }
 .servicios .wrap{position:relative}
 
+
+/* Encabezado y pista, por delante de la foto flotante.
+
+   La foto puede subir hasta aquí y antes los tapaba a medias. Es el mismo
+   recurso que ya usaban .serv__row y .serv__panel: la imagen va en z-index 1
+   y todo el texto de la sección por encima, así que se sigue leyendo con la
+   foto pasando por detrás en vez de tener que acotarle el recorrido. */
+.servicios .head{position:relative;z-index:2}
+
+/* Instrucción sobre la lista. Alineada a la derecha para que caiga sobre la
+   columna de los galones, que es lo que describe. */
+.serv__pista{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.55rem;
+  padding-bottom:.85rem;
+  font-size:var(--t-xs);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--cemento);
+}
+/* El mismo galón de las filas, en miniatura: la frase señala el elemento
+   que describe en vez de introducir un símbolo nuevo. */
+.serv__pista-i{
+  position:relative;
+  width:.8rem;height:.8rem;
+  flex:none;
+}
+.serv__pista-i::after{
+  content:"";
+  position:absolute;
+  top:50%;left:50%;
+  width:.42rem;height:.42rem;
+  border-right:1px solid var(--minio);
+  border-bottom:1px solid var(--minio);
+  transform:translate(-50%,-85%) rotate(45deg);
+}
+
 .serv__item{border-top:1px solid var(--line)}
 .serv__item:last-of-type{border-bottom:1px solid var(--line)}
 
@@ -749,20 +799,34 @@ address{font-style:normal}
   font-size:var(--t-sm);
   color:var(--cemento);
   transition:color .4s var(--e)}
+/* Siempre visible, apagada en reposo. Antes nacía en scaleX(0) y solo se
+   dibujaba al pasar el puntero: en escritorio era un hallazgo bonito, pero
+   en táctil no hay hover, así que nada indicaba que las filas se abren. La
+   pista tiene que estar antes de tocar, no como premio por haber tocado.
+   Se hereda el color con currentColor para poder apagarla de una sola vez. */
 .serv__arrow{
   justify-self:end;
-  width:1.6rem;height:1px;
-  background:var(--minio);
   position:relative;
-  transform:scaleX(0);
-  transform-origin:right;
-  transition:transform .5s var(--e-out)}
+  width:1.25rem;height:1.25rem;
+  color:var(--cemento);
+  opacity:.5;
+  transition:opacity .4s var(--e),color .4s var(--e)}
+/* El galón son dos lados de un cuadrado; lo que lo orienta es el giro.
+   45deg apunta abajo (cerrado) y -135deg arriba (abierto).
+
+   El desplazamiento vertical no es el -50% de costumbre: al girar, la tinta
+   no queda repartida alrededor del centro de la caja sino a un lado del
+   vértice, así que centrarla ópticamente pide corregir a mano, y la
+   corrección cambia de signo según hacia dónde apunte. */
 .serv__arrow::after{
-  content:"";position:absolute;right:0;top:50%;
-  width:.42rem;height:.42rem;
-  border-top:1px solid var(--minio);
-  border-right:1px solid var(--minio);
-  transform:translateY(-50%) rotate(45deg);
+  content:"";
+  position:absolute;
+  top:50%;left:50%;
+  width:.55rem;height:.55rem;
+  border-right:1px solid currentColor;
+  border-bottom:1px solid currentColor;
+  transform:translate(-50%,-85%) rotate(45deg);
+  transition:transform .45s var(--e-out);
 }
 
 /* El abierto se marca igual que el que tiene el puntero encima: al llegar
@@ -775,7 +839,8 @@ address{font-style:normal}
 .serv__item.is-active .serv__n,
 .serv__item.is-open .serv__n{color:var(--minio)}
 .serv__item.is-active .serv__arrow,
-.serv__item.is-open .serv__arrow{transform:scaleX(1);transform-origin:left}
+.serv__item.is-open .serv__arrow{opacity:1;color:var(--minio)}
+.serv__item.is-open .serv__arrow::after{transform:translate(-50%,-15%) rotate(-135deg)}
 
 .serv__panel{
   display:grid;
@@ -795,21 +860,21 @@ address{font-style:normal}
 }
 /* Las dos cajas de texto se ciñen a sus letras.
 
-   Importa para la foto flotante: el script decide si esconderla según qué
-   elemento haya bajo el puntero, y por defecto estas dos cajas son mucho
-   más anchas que su texto —el nombre es una celda de rejilla estirada que
-   llega hasta la descripción de la derecha, y el párrafo es un bloque que
-   ocupa sus 52ch aunque el renglón termine antes—. Sin ceñirlas, todo ese
-   hueco negro contaría como texto. Ninguna de las dos lleva fondo ni
-   borde, así que ceñirlas no cambia nada de lo que se ve. */
+   Importa para la foto flotante: el script mide el borde derecho de estas
+   cajas para saber hasta dónde puede acercarse la imagen. Por defecto son
+   mucho más anchas que su texto —el nombre es una celda de rejilla estirada
+   que llega hasta la descripción de la derecha, y el párrafo ocupa sus 52ch
+   aunque el renglón termine antes—, así que sin ceñirlas el tope quedaría
+   absurdamente a la derecha. Ninguna lleva fondo ni borde: ceñirlas no
+   cambia nada de lo que se ve. */
 .serv__name{justify-self:start}
 .serv__panel p{
   width:fit-content;
   max-width:52ch;
-  /* Margen y no padding: da el mismo aire, pero el padding sí es zona
-     sensible al puntero y dejaba una franja muerta bajo el texto. No se
-     colapsa hacia fuera porque el overflow de .serv__panel-in ya crea un
-     contexto de formato, así que sigue contando para el alto del panel. */
+  /* Margen y no padding, para que el aire de abajo no cuente como ancho ni
+     como caja del texto. No se colapsa hacia fuera porque el overflow de
+     .serv__panel-in ya crea un contexto de formato, así que sigue contando
+     para el alto del panel. */
   margin-bottom:1.25rem;
   color:var(--cemento);
   font-size:var(--t-base);
@@ -939,9 +1004,13 @@ address{font-style:normal}
 }
 .nosotros__grid > *{min-width:0}
 .nosotros__media{overflow:hidden;background:var(--polvo)}
+/* 3/2, la proporción del archivo. Antes era 4/5 porque la foto que había era
+   vertical; la del equipo es apaisada y con ese recorte se perdían las dos
+   personas de los extremos. Se deja object-fit por si algún día se cambia la
+   foto por otra que no case exactamente. */
 .nosotros__media img{
   width:100%;
-  aspect-ratio:4 / 5;
+  aspect-ratio:3 / 2;
   max-height:58svh;
   object-fit:cover;
 }
@@ -1106,14 +1175,26 @@ address{font-style:normal}
   gap:1.5rem;
   margin-top:clamp(1.5rem,2.6vw,2.25rem);
 }
-.testi__dots{display:flex;gap:.6rem}
+/* Los puntos se encogen. Con tres testimonios sobraba sitio y un ancho fijo
+   bastaba; con diez, en un móvil se salían de la fila. El flex-basis mantiene
+   el tamaño de siempre cuando cabe y cede cuando no. */
+.testi__dots{display:flex;gap:.6rem;min-width:0}
 .testi__dots button{
-  width:2.25rem;height:2px;
+  flex:0 1 2.25rem;
+  width:2.25rem;
+  min-width:.5rem;
+  height:2px;
+  /* El trazo sigue midiendo 2px, pero el área que se puede tocar sube a
+     algo más de un centímetro: diez blancos de 2px en un móvil eran
+     imposibles de acertar con el dedo. */
+  padding-block:.55rem;
+  box-sizing:content-box;
   background:var(--line-dark);
+  background-clip:content-box;
   cursor:pointer;
   transition:background .4s var(--e);
 }
-.testi__dots button[aria-current="true"]{background:var(--minio)}
+.testi__dots button[aria-current="true"]{background:var(--minio);background-clip:content-box}
 .testi__btns{display:flex;gap:.6rem}
 
 /* ── Preguntas frecuentes ──────────────────────────────────
@@ -1733,8 +1814,15 @@ html.modal-abierto .cursor{display:none}
     --sec-lg:10.5rem;
   }
 
-  /* En móvil no hay costado libre que llenar */
-  .testi__mark{display:none}
+  /* La comilla también en móvil, pero a otra escala. El clamp de arriba
+     arranca en 16rem, pensado para llenar un costado que aquí no existe:
+     a ese tamaño no acompaña la cita, la aplasta. Se recalcula contra el
+     ancho de la pantalla en vez de heredar aquel mínimo. */
+  .testi__mark{font-size:clamp(6.5rem,34vw,11rem)}
+
+  /* Diez puntos en una pantalla estrecha: el hueco entre ellos pesa tanto
+     como el punto, así que se aprieta antes de dejar que se encojan más. */
+  .testi__dots{gap:.35rem}
 
   .stats{grid-template-columns:1fr;gap:1rem}
   .stat{display:flex;align-items:baseline;gap:.75rem}

@@ -104,6 +104,19 @@
     });
   }
 
+  /* Congela el scroll de la página. Lo usan el menú móvil y el modal de
+     contacto, que son los dos que se abren por encima de todo.
+
+     La clase va en <html> además de en el <body>: la hoja fija overflow-x en
+     <html>, así que su overflow deja de ser visible y el navegador propaga al
+     viewport el suyo, no el del <body>. Puesta solo en el body, el bloqueo no
+     hacía nada. Se comparte en vez de repetirla en cada módulo justamente
+     para que no vuelvan a separarse. */
+  function bloqueaScroll(si) {
+    document.documentElement.classList.toggle('is-locked', si);
+    document.body.classList.toggle('is-locked', si);
+  }
+
   /* ─────────────────────────────────────────────────────
      1 · SISTEMA DE ANIMACIONES  [data-animation]
      ───────────────────────────────────────────────────── */
@@ -172,14 +185,14 @@
       menu.classList.add('is-open');
       toggle.setAttribute('aria-expanded', 'true');
       toggle.setAttribute('aria-label', 'Cerrar menú');
-      document.body.classList.add('is-locked');
+      bloqueaScroll(true);
     }
 
     function close() {
       menu.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', 'Abrir menú');
-      document.body.classList.remove('is-locked');
+      bloqueaScroll(false);
       var hide = function () { menu.hidden = true; };
       if (motionOK()) setTimeout(hide, 700); else hide();
     }
@@ -461,60 +474,112 @@
       else raf = null;
     }
 
-    /* La foto se esconde sobre el texto de la izquierda —el nombre del
-       servicio y, si está desplegado, su párrafo— y se ve en todo lo demás:
-       el número, la descripción de la derecha, la flecha y el negro.
+    /* La foto vive encerrada en la banda negra del centro: no cruza el texto
+       de la izquierda —nombres y párrafos— ni el de la derecha —descripciones
+       y galones—. Por arriba sí puede salirse hasta el encabezado: allí no
+       molesta porque el texto se pinta por delante de ella.
 
-       Quién está debajo del puntero lo resuelve el navegador, no una cuenta
-       de coordenadas nuestra. Es deliberado: esta zona se mueve sola. Al
-       entrar en una fila su padding-left se desplaza durante medio segundo,
-       y al abrir un servicio el panel crece durante otro medio segundo
-       arrastrando todo lo de abajo. Midiendo rectángulos a mano solo se
-       acierta mientras llegan eventos de movimiento; con el ratón quieto el
-       texto sigue deslizándose por debajo y el estado se queda viejo. El
-       hit-testing del navegador se reevalúa con cada cambio de maquetación
-       y avisa por mouseover aunque el puntero no se haya movido.
+       Probamos antes a esconderla solo cuando el cursor caía justo encima de
+       una letra y no servía: la foto mide casi 300px, así que desde cualquier
+       hueco negro cercano seguía tapando el texto de al lado. Lo que hay que
+       acotar no es dónde está el puntero, es hasta dónde llega la imagen; el
+       puntero solo decide si se ve o no.
 
-       Las cajas se ciñen a su texto desde el CSS (ver .serv__name y
-       .serv__panel p); sin eso, esto acertaría el elemento pero el elemento
-       ocuparía de más. */
-    var TEXTO = '.serv__name, .serv__panel p';
+       Los tres límites se calculan, no se fijan: salen de los bordes reales
+       del texto. Las cajas del nombre y del párrafo se ciñen a sus letras
+       desde el CSS (ver .serv__name y .serv__panel p); estiradas, esta cuenta
+       daría un tope muy a la derecha. Los párrafos cerrados también cuentan:
+       el recorte del acordeón les quita el alto, no el ancho, y su servicio
+       puede abrirse en cualquier momento. */
 
-    function pinta(destino) {
-      var item = destino && destino.closest ? destino.closest('.serv__item') : null;
-      if (!item || destino.closest(TEXTO)) {
+    /* Aire entre el texto y la foto. Generoso a propósito: los topes se miden
+       con las filas en reposo, pero al activarse una fila su padding-left
+       corre el nombre hasta 24px a la derecha, y ese desplazamiento tiene
+       una transición de medio segundo que hace poco fiable leerlo en
+       caliente. Sale más barato absorberlo aquí que perseguirlo. */
+    var HUECO = 40;
+
+    var topeIzq = 0;      // la foto no empieza antes de aquí
+    var topeDer = 0;      // ni termina después de aquí
+
+    /* Cuánto puede rebasar la foto el borde inferior del contenedor. Este
+       termina en la última fila, así que sin esto la imagen se quedaba corta
+       justo ahí y aparecía descolgada por encima del cursor en vez de
+       centrada en él. Se aprovecha el padding de la sección, que ya es negro:
+       se calcula en vez de fijarlo para no bajar nunca de la sección y
+       meterse en la de Proceso, que es clara. */
+    var respiro = 0;
+
+    function midaTopes() {
+      var r = wrap.getBoundingClientRect();
+
+      var der = 0;
+      $$('.serv__name, .serv__panel p', list).forEach(function (el) {
+        var b = el.getBoundingClientRect();
+        if (b.width && b.right > der) der = b.right;
+      });
+      topeIzq = der ? der - r.left + HUECO : 0;
+
+      var izq = Infinity;
+      $$('.serv__desc, .serv__arrow', list).forEach(function (el) {
+        var b = el.getBoundingClientRect();
+        if (b.width && b.left < izq) izq = b.left;
+      });
+      topeDer = izq < Infinity ? izq - r.left - HUECO : r.width;
+
+      var sec = wrap.parentElement;
+      respiro = sec ? Math.max(0, sec.getBoundingClientRect().bottom - r.bottom) : 0;
+    }
+
+    addResizer(midaTopes);
+    // La tipografía llega después del arranque y el texto cambia de ancho
+    window.addEventListener('load', midaTopes);
+
+    function move(e) {
+      if (!floatOK()) return;
+
+      var r = wrap.getBoundingClientRect();
+      var mw = media.offsetWidth;
+      var mh = media.offsetHeight;
+
+      /* Math.min por si la ventana se angosta tanto que el tope se sale del
+         contenedor: con el mínimo por encima del máximo, clamp devolvería el
+         mínimo y la foto asomaría por fuera. */
+      var px = e.clientX - r.left;                 // puntero, relativo al contenedor
+      var maxX = Math.min(topeDer - mw, Math.max(0, r.width - mw));
+      var minX = Math.min(topeIzq, maxX);
+      /* Sin techo: la foto puede subir hasta el borde del contenedor y pasar
+         por delante del encabezado. No estorba porque ese texto se pinta por
+         encima de ella (ver z-index en .servicios .head y .serv__pista). */
+      tx = clamp(px - mw / 2, minX, maxX);
+      ty = clamp(e.clientY - r.top - mh / 2, 0, Math.max(0, r.height - mh + respiro));
+      if (!shown) { cx = tx; cy = ty; shown = true; }
+      if (!raf) raf = requestAnimationFrame(loop);
+
+      /* Fuera de la banda la foto se apaga del todo. Antes se quedaba
+         encallada en el tope, visible y quieta, que era peor que no estar:
+         seguía compitiendo con lo que se está leyendo y ya no acompañaba al
+         cursor. La posición se sigue calculando arriba aunque esté escondida,
+         para que reaparezca donde toca y no viajando desde donde se apagó.
+
+         Si la banda se estrecha más que la propia foto —una ventana justo por
+         encima del umbral de 1100px con textos largos— no se muestra: es
+         preferible perder el efecto a taparle el texto a alguien. */
+      // El servicio se resuelve por el elemento bajo el puntero y no por
+      // mouseenter: dentro de un panel abierto aquel daba la fila equivocada.
+      var item = e.target.closest('.serv__item');
+      if (!item || px < topeIzq || px > topeDer || topeDer - topeIzq < mw) {
         media.classList.remove('is-visible');
         return;
       }
+
       var row = $('.serv__row', item);
       var idx = row ? parseInt(row.getAttribute('data-img'), 10) || 0 : 0;
       imgs.forEach(function (im, i) { im.classList.toggle('is-shown', i === idx); });
       media.classList.add('is-visible');
     }
 
-    function move(e) {
-      if (!floatOK()) return;
-
-      /* La posición se actualiza siempre, también mientras está escondida:
-         así al salir del texto reaparece bajo el cursor y no viajando desde
-         donde se apagó. */
-      var r = wrap.getBoundingClientRect();
-      var mw = media.offsetWidth;
-      var mh = media.offsetHeight;
-      tx = clamp(e.clientX - r.left - mw / 2, 0, Math.max(0, r.width - mw));
-      ty = clamp(e.clientY - r.top - mh / 2, 0, Math.max(0, r.height - mh));
-      if (!shown) { cx = tx; cy = ty; shown = true; }
-      if (!raf) raf = requestAnimationFrame(loop);
-
-      pinta(e.target);
-    }
-
     list.addEventListener('mousemove', move);
-
-    // Cubre el caso del ratón quieto: es el que dispara al moverse la página
-    list.addEventListener('mouseover', function (e) {
-      if (floatOK()) pinta(e.target);
-    });
 
     list.addEventListener('mouseleave', function () {
       media.classList.remove('is-visible');
@@ -1019,14 +1084,14 @@
       /* showModal() ya bloquea la interacción con el fondo, pero no el
          scroll: sin esto la página sigue corriendo detrás del diálogo.
          Es la misma clase que usa el menú móvil. */
-      document.body.classList.add('is-locked');
+      bloqueaScroll(true);
       // Devuelve el puntero del sistema mientras dure el modal (ver style.css)
       document.documentElement.classList.add('modal-abierto');
     }
 
     // Esc y el botón de cerrar terminan los dos aquí ('close' es nativo)
     dlg.addEventListener('close', function () {
-      document.body.classList.remove('is-locked');
+      bloqueaScroll(false);
       document.documentElement.classList.remove('modal-abierto');
     });
 
