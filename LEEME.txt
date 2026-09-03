@@ -1,0 +1,52 @@
+PÓRTICO CONSTRUCTORA — sitio web
+HTML5 + CSS3 + JavaScript vanilla. Sin frameworks ni librerías.
+
+ESTRUCTURA
+  index.html          12 secciones, SEO, Open Graph y JSON-LD
+  style.css           tokens, tipografía, secciones y responsive
+  script.js           animaciones, scroll horizontal, slider, contadores
+  assets/img/         16 imágenes WebP
+
+CÓMO PROBARLO
+  Abrir index.html en el navegador, o servirlo:
+      python -m http.server 8000
+  y entrar a http://localhost:8000
+
+ANTES DE PUBLICAR — reemplazar estos marcadores
+  hola@porticoconstructora.co        (index.html: JSON-LD, menú, CTA, footer)
+  +57 300 123 4567                   (índem, más el enlace de WhatsApp)
+  Calle 22 # 3-45, Centro Histórico  (JSON-LD y footer)
+  NIT 901.000.000-1                  (footer)
+  https://porticoconstructora.co/    (canonical, Open Graph, JSON-LD)
+  Coordenadas geo del JSON-LD        (latitud/longitud reales de la oficina)
+  Instagram y LinkedIn               (footer y sameAs del JSON-LD)
+
+IMÁGENES
+  Todas se derivan del render original. Para sustituirlas por fotos reales
+  de obra, mantener los nombres y estas proporciones:
+
+    hero.webp              16:9   fondo del hero (escritorio)
+    hero-mobile.webp        3:5   fondo del hero (móvil)
+    proyecto-horizonte      4:5   proyecto 01
+    proyecto-nativa         4:5   proyecto 02
+    proyecto-altura         3:2   proyecto 03
+    proyecto-linea          3:2   proyecto 04
+    galeria-01 a 06         varias, la galería se adapta
+    nosotros                4:5
+    diferenciales           3:2
+    cta                    16:9   fondo del CTA final
+    og                   1200x630 vista previa al compartir
+
+  Los proyectos se muestran en blanco y negro y recuperan color al hacer
+  hover; no hace falta preparar dos versiones.
+
+NOTAS TÉCNICAS
+  - Un único listener de scroll alimenta un bucle requestAnimationFrame
+    compartido. Las posiciones se miden al cargar y en cada resize, nunca
+    dentro del bucle.
+  - Las tipografías (Archivo e IBM Plex Sans) se cargan desde Google Fonts.
+    Para alojarlas localmente, descargarlas y cambiar el <link> del <head>
+    por una regla @font-face.
+  - La galería pasa de scroll horizontal controlado (escritorio) a carrusel
+    táctil (760px o menos).
+  - Con prefers-reduced-motion se desactivan parallax, cursor y transiciones.

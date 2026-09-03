@@ -1,0 +1,9 @@
+# Normaliza los finales de línea en el repositorio (LF) y los deja como
+# corresponda en cada sistema al hacer checkout. Evita diffs fantasma.
+* text=auto
+
+# Binarios: que git no intente normalizarlos ni diferenciarlos por líneas
+*.webp binary
+*.png  binary
+*.jpg  binary
+*.ico  binary

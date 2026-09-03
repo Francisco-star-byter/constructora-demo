@@ -1,0 +1,16 @@
+# Sistema operativo
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+
+# Temporales
+*.log
+*.tmp
+*~
