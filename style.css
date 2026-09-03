@@ -40,6 +40,9 @@
   --gut:clamp(1.25rem,3.4vw,3.75rem);
   --max:88rem;
   --sec:clamp(3.5rem,6.5vw,6.5rem);
+  /* Corte entre secciones que comparten fondo: sin cambio de color, el
+     espacio es lo único que las separa y necesita más aire. */
+  --sec-lg:clamp(5rem,10vw,12.5rem);
   --line:rgba(198,193,182,.22);
   --line-dark:rgba(20,18,15,.16);
 
@@ -551,7 +554,7 @@ address{font-style:normal}
   /* Mismo caso que Proceso: comparte fondo con Manifiesto, así que sin
      aire arriba el titular quedaba pegado al texto anterior. Mismo ritmo
      que los demás cortes entre secciones del mismo color. */
-  padding-top:clamp(5rem,10vw,12.5rem);
+  padding-top:var(--sec-lg);
 }
 .proyectos > .wrap{padding-bottom:clamp(1.5rem,2.6vw,2.25rem)}
 
@@ -837,7 +840,7 @@ address{font-style:normal}
      sección oscura y otra que comparte su mismo fondo, así que es la que
      más necesita definirse por espacio. Crece más en pantalla ancha, que
      es donde se notaba apretada. */
-  padding-block:clamp(5rem,10vw,12.5rem);
+  padding-block:var(--sec-lg);
 }
 .pasos{
   position:relative;
@@ -1479,6 +1482,14 @@ html.has-cursor button{cursor:none}
 
 /* ── ≤ 760px: una columna ──────────────────────────────── */
 @media (max-width:760px){
+  /* Más aire entre secciones. En pantalla estrecha el corte no se apoya en
+     el ancho, así que todo el trabajo de separar lo hace el eje vertical.
+     Los clamp de arriba tocan su mínimo aquí, y ese mínimo se queda corto. */
+  :root{
+    --sec:4.75rem;
+    --sec-lg:6.75rem;
+  }
+
   /* En móvil no hay costado libre que llenar */
   .testi__mark{display:none}
 
@@ -1503,6 +1514,7 @@ html.has-cursor button{cursor:none}
 @media (max-height:520px) and (orientation:landscape){
   :root{
     --sec:2.5rem;
+    --sec-lg:3.5rem;
     /* En horizontal el notch se come el margen lateral, no el superior */
     --gut:max(1.5rem,env(safe-area-inset-left,0px),env(safe-area-inset-right,0px));
   }
